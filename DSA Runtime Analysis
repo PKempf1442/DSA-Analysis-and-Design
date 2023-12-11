@@ -1,0 +1,44 @@
+
+
+Example Runtime Analysis
+When you are ready to begin analyzing the runtime for the data structures that you have created pseudocode for, use the chart below to support your work. This example is for printing course information when using the vector data structure. As a reminder, this is the same pairing that was bolded in the pseudocode from the first part of this document.
+
+Code	Line Cost	# Times Executes	Total Cost
+for all courses	1	n	n
+     if the course is the same as courseNumber	1	n	n
+         print out the course information	1	1	1
+         for each prerequisite of the course	1	n	n
+           print the prerequisite course information	1	n	n
+Total Cost	4n + 1
+Runtime	O(n)
+
+Vector:
+The main advantage for a vector is its simplicity. For projects that are less complex with a few simple variables they are by far the best choice. They begin to fall flat compared to hash tables and binary trees when it comes to finding specific nodes within them. Vectors have no inherent way to easily find a node you are searching for; therefore, we have to create our own algorithms for searching through them. Overall, I would not recommend a vector for this project since there will be a large number of variables within the file, and we will require a function to dynamically search through them.
+
+Hash Table:
+The cost of printing a specified node would be similar, however, we would only need to search through the associated keys linked list instead of the entire vector. This makes our worst runtime much shorter. The worst-case would be O(n) where n is the largest linked list within a node. The absolute worst case would be if all the data was in one key and then it would have the same efficiency as a vector.
+
+Code	Line Cost	# Times Executes	Total Cost
+for nodes within keys linked list	1	n	n
+     if the course is the same as courseNumber	1	n	n
+         print out the course information	1	1	1
+         for each prerequisite of the course	1	n	n
+           print the prerequisite course information	1	n	n
+Total Cost	4n + 1
+Runtime	O(n)
+
+Hash tables are a bit more complex than vectors and we can use this to our advantage. The key system present in hash tables allows for dynamic searches which will require much less search time than searching through a vector. They also allow us to easily and dynamically add additional nodes. Overall, a hash table would be my recommendation and the data structure I will be using for this project.
+
+
+Binary Tree:
+For a Binary tree the runtime would be similar, however, in this case we only have to search down a certain path until we find our node. This is vastly more efficient than searching through the entire vector. The worst case would be O(n) where n is the longest tree. Once again, the absolute worst would be if every entry went down the same tree making it as efficient as a vector.
+
+Code	Line Cost	# Times Executes	Total Cost
+If Node is < current node traverse left. If Node is > current node traverse right reutrn if Node->course == course.	2	n	n
+     if the course is the same as courseNumber	1	n	n
+         print out the course information	1	1	1
+         for each prerequisite of the course	1	n	n
+           print the prerequisite course information	1	n	n
+Total Cost	5n + 1
+Runtime	O(n)
+A binary tree would be my second choice for this project. Their heretical structure allows them to be searched very easily. The tree structure also allows for a simple and efficient path of deletion and addition of nodes. Overall, a binary search tree would be a good data structure for this project, however the complexity of the structure is not necessary for the data we are working with. 
