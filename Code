@@ -1,0 +1,281 @@
+#include <iostream>
+using namespace std;
+#include <fstream>
+#include <sstream>
+#include <unordered_map>
+#include <vector>
+#include <algorithm>
+#include <climits>
+struct Course {
+    //Create structures to store the courses
+    string courseNumber;
+    string courseTitle;
+    //Create a vector to store multiple prerequisites
+    vector<string> prerequisites;
+};
+//Create a hash table to store courses
+class CourseHashTable {
+private:
+    //Set table size to 20 since there are only 8 courses in the file
+    static const size_t TABLE_SIZE = 20;
+    //Initialize the tables contents to nullptr
+
+    //Calulate the hash value for the key
+    size_t hash(const string& key) const {
+        size_t hashValue = 0;
+        for (char a : key) {
+            hashValue = (hashValue * 17) + a;
+        }
+        return hashValue % TABLE_SIZE;
+    }
+    struct Node {
+        // Initialize course, key, and node
+        Course course;
+        unsigned int key;
+        Node* next;
+
+        // default constructor
+        Node() {
+            key = UINT_MAX;
+            next = nullptr;
+        }
+
+        // initialize with a course
+        Node(Course acourse) : Node() {
+            course = acourse;
+        }
+
+        // initialize with a bid and a key
+        Node(Course acourse, unsigned int aKey) : Node(acourse) {
+            key = aKey;
+        }
+    };
+    // Create a vector of nodes
+    vector<Node> nodes;
+public:
+
+    // Function to insert a course
+    void insertCourse(const Course& course) {
+        if (nodes.size() == 0) {
+            nodes.resize(TABLE_SIZE);
+        }
+        // Find the key
+        unsigned key = hash(course.courseNumber);
+        // Find the keys corresponding node
+        Node& newNode = nodes[key];
+
+        // If corresponding entry is empty assign the node with the bid and key
+        if (newNode.key == UINT_MAX) {
+            newNode.course = course;
+            newNode.key = key;
+        }
+        // If a node exists and the node it is pointing to is null add a new node in place of nullptr
+        else if (newNode.next == nullptr) {
+            // Create a copy of newNode
+            Node oldNode = newNode;
+            // Assign the new node key with UINT_MAX
+            //newNode.key = UINT_MAX;
+            newNode.key = key;
+            // Create a node in the next position after new node with the saved info in oldNode
+            newNode.next = new Node(oldNode.course, oldNode.key);
+            // Set newNode's bid to current bid
+            newNode.course = course;
+
+        }
+        // If the key's corresponding node has multiple entries find the next available node
+        else {
+            // Create a pointer
+            Node* currentNode = &newNode;
+            // Loop to find the next available node using the pointer
+            while (currentNode->next != nullptr) {
+                currentNode = currentNode->next;
+            }
+            // Add a new node with the bid to the end of the list
+            currentNode->next = new Node(course, key);
+        }
+    }
+    // Function to find a course 
+    const Course* searchCourse(const string& courseNumber) const {
+        unsigned int key = hash(courseNumber);
+        // Get the node associated with the key
+        const Node* currentNode = &nodes[key];
+        // Check if current node is null
+        while (currentNode != nullptr) {
+            // Check if current node courseNumber is the same as the courseNumber
+            if (currentNode->course.courseNumber == courseNumber) {
+                // Return the course if it is found
+                return &(currentNode->course);
+            }
+            // Go to next node if course was not found
+            currentNode = currentNode->next;
+        }
+        // Return null if no node is found
+        return nullptr;
+    }
+
+    // Function to find the table size
+    size_t getSize() const {
+        return TABLE_SIZE;
+    }
+    vector<Course> getCourseInd(const int i) const {
+        Node node = nodes[i];
+        Node* currentNode = &node;
+        // Check if current node is null
+        vector<Course> sortedCourses;
+        while (currentNode != nullptr) {
+            if (currentNode->key != UINT_MAX)
+                sortedCourses.push_back(currentNode->course);
+            currentNode = currentNode->next;
+        }
+        // Return null if no node is found
+        return sortedCourses;
+    }
+
+
+};
+
+
+void loadDataStructure(CourseHashTable& courseTable);
+void printCourseList(const CourseHashTable& courseTable);
+void printCourseInformation(const CourseHashTable& courseTable, const string& courseNumber);
+
+void loadDataStructure(CourseHashTable& courseTable) {
+
+
+    // Open the file
+    ifstream file("CourseList.txt");
+    // Return an error if the file fails to open
+    if (!file.is_open()) {
+        cerr << "Error opening file: " << "CourseList.txt" << "/n";
+        return;
+    }
+
+
+    // Get the courses from the file
+    while (!file.eof()) {
+        string line;
+        getline(file, line);
+        // Get the course number and title 
+        istringstream iss(line);
+        Course course;
+
+        // Get each line seperated by commas
+        getline(iss, course.courseNumber, ',');
+        getline(iss, course.courseTitle, ',');
+
+        // Get the prerequisies if there are any
+        string prerequisite;
+        while (getline(iss, prerequisite, ',')) {
+            course.prerequisites.push_back(prerequisite);
+
+        }
+        // Insert the course into the table
+        courseTable.insertCourse(course);
+    }
+
+    // Close file
+    file.close();
+
+    cout << "Data loaded into hash table.\n";
+}
+// Function to print course list alphanumerically 
+void printCourseList(const CourseHashTable& courseTable) {
+    // Create a vector to hold the courses
+    vector<Course> allCourses;
+    // Insert courses into the vector
+    for (size_t i = 0; i < courseTable.getSize(); i++) {
+        vector<Course> sortedCourses = courseTable.getCourseInd(i);
+        allCourses.insert(allCourses.end(), sortedCourses.begin(), sortedCourses.end());
+
+    }
+    // Sort courses
+    sort(allCourses.begin(), allCourses.end(), [](const Course& a, const Course& b) {
+        return a.courseNumber < b.courseNumber;
+        });
+    // Print sorted courses
+    for (size_t j = 0; j < allCourses.size(); j++) {
+        Course course = allCourses[j];
+        cout << course.courseNumber << " " << course.courseTitle;
+        if (!course.prerequisites.empty()) {
+            for (size_t k = 0; k < course.prerequisites.size(); k++) {
+                cout << " " << course.prerequisites[k];
+            }
+        }
+        cout << endl;
+    }
+
+}
+// Print course information for a specific course
+void printCourseInformation(const CourseHashTable& courseTable, const string& courseNumber) {
+    // Find the course with the given course number
+    const Course* searchedCourse = courseTable.searchCourse(courseNumber);
+
+    // Check if the course was found
+    if (searchedCourse) {
+        // Print course information
+        cout << searchedCourse->courseNumber << ", ";
+        cout << searchedCourse->courseTitle << "\n";
+        cout << "Prerequisites: ";
+        if (searchedCourse->prerequisites.empty()) {
+            cout << "None";
+        }
+        else {
+            for (const auto& prerequisite : searchedCourse->prerequisites) {
+                cout << prerequisite << ", ";
+            }
+        }
+        cout << "\n";
+    }
+    else {
+        cout << "No matching course found.\n";
+    }
+}
+int main() {
+
+    CourseHashTable courseTable;
+
+    while (true) {
+        // Menu options for user
+        cout << "Menu:\n";
+        cout << "1. Load Data Structure\n";
+        cout << "2. Print Course List\n";
+        cout << "3. Print Course Information\n";
+        cout << "4. Exit\n";
+
+        // Get user input 
+        int choice;
+        cout << "What would you like to do? ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1:
+            // Load the data from CourseList into the table
+        {
+            loadDataStructure(courseTable);
+        }
+        break;
+        case 2:
+            // Print course list sorted alphanumerically
+            printCourseList(courseTable);
+            break;
+        case 3:
+            // Get user input for desired course number and return it with prerequisites if there are any
+        {
+            string courseNumber;
+            cout << "What course do you want to know about?";
+            cin >> courseNumber;
+            printCourseInformation(courseTable, courseNumber);
+        }
+        break;
+        case 4:
+            // Exit the program
+            cout << "Exiting\n";
+            return 0;
+            // If user inputs an invalid option return an error
+        default:
+            cout << choice << " is not a valid option.\n";
+        }
+    }
+
+    return 0;
+}
